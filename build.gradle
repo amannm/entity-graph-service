@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+}
+
+group 'systems.cauldron'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    //logging
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2+'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2+'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2+'
+
+    //web server and REST endpoint
+    implementation group: 'io.helidon.webserver', name: 'helidon-webserver', version: '1+'
+    implementation group: 'io.helidon.config', name: 'helidon-config-yaml', version: '1+'
+    implementation group: 'io.helidon.media.jsonp', name: 'helidon-media-jsonp-server', version: '1+'
+    implementation group: 'javax.activation', name: 'activation', version: '1+'
+    implementation group: 'io.helidon.webserver', name: 'helidon-webserver-jersey', version: '1+'
+
+    //RDF framework and SPARQL endpoint connector
+    implementation('org.apache.jena:jena-core:3+') {
+        exclude group: 'org.slf4j'
+    }
+    implementation('org.apache.jena:jena-arq:3+') {
+        exclude group: 'org.slf4j'
+    }
+    implementation('org.apache.jena:jena-rdfconnection:3+') {
+        exclude group: 'org.slf4j'
+    }
+
+    //embedded SPARQL server for unit testing
+    testImplementation('org.apache.jena:jena-fuseki-main:3+') {
+        exclude group: 'org.slf4j'
+    }
+    testImplementation('org.apache.jena:jena-tdb:3+') {
+        exclude group: 'org.slf4j'
+    }
+    testImplementation('org.apache.jena:jena-tdb2:3+') {
+        exclude group: 'org.slf4j'
+    }
+
+    //unit testing framework
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5+'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5+'
+
+}
+
+compileJava {
+    inputs.property("moduleName", 'systems.cauldron.service.entitygraph')
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath,
+        ]
+        classpath = files()
+    }
+}

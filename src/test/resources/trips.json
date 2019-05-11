@@ -1,0 +1,65 @@
+[
+  {
+    "tripId": "62f4cc6e-ece1-40ea-a6f4-7605f94ac5a4",
+    "userId": "tonystark",
+    "origin": "3dc84d15-9bd0-4aca-b11a-1aee60c9bb6b",
+    "destination": "cc7f75c2-0d49-4d44-8898-296268d14115",
+    "departureDateTime": "2019-04-06T20:21:42.000Z",
+    "arrivalDateTime": "2019-04-06T21:24:56.000Z",
+    "purpose": "business"
+  },
+  {
+    "tripId": "02ae559c-b583-445c-8b83-283fb60155f5",
+    "userId": "tonystark",
+    "origin": "cc7f75c2-0d49-4d44-8898-296268d14115",
+    "destination": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "departureDateTime": "2019-04-10T04:47:21.000Z",
+    "arrivalDateTime": "2019-04-10T09:13:52.000Z",
+    "purpose": "BUSINESS"
+  },
+  {
+    "tripId": "58f84e4b-be09-494d-9304-ef11f39e8a01",
+    "userId": "tonystark",
+    "origin": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "destination": "3dc84d15-9bd0-4aca-b11a-1aee60c9bb6b",
+    "departureDateTime": "2019-04-11T10:16:24.000Z",
+    "arrivalDateTime": "2019-04-11T11:04:42.000Z",
+    "purpose": "BUSINESS"
+  },
+  {
+    "tripId": "120f4454-76d9-4e18-abbb-93677bc5aff4",
+    "userId": "thorodinson",
+    "origin": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "destination": "ad44274b-685e-4a96-9a76-74bec9894fc0",
+    "departureDateTime": "2019-04-07T22:42:04.000Z",
+    "arrivalDateTime": "2019-04-07T23:14:06.000Z",
+    "purpose": "VACATION"
+  },
+  {
+    "tripId": "643f0a6b-5497-49b5-bc5e-b58f5a16dab2",
+    "userId": "thorodinson",
+    "origin": "ad44274b-685e-4a96-9a76-74bec9894fc0",
+    "destination": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "departureDateTime": "2019-04-09T13:24:32.000Z",
+    "arrivalDateTime": "2019-04-09T16:41:05.000Z",
+    "purpose": "VACATION"
+  },
+  {
+    "tripId": "7c17e904-1d25-407a-9198-db5712dc380a",
+    "userId": "stephenstrange",
+    "origin": "1ac1b418-8543-49ae-b4d8-68034cdd0757",
+    "destination": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "departureDateTime": "2019-04-06T21:24:04.000Z",
+    "arrivalDateTime": "2019-04-07T22:25:14.000Z",
+    "purpose": "BUSINESS"
+  },
+  {
+    "tripId": "7c17e904-1d25-407a-9198-db5712dc380a",
+    "userId": "stephenstrange",
+    "origin": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "destination": "1ac1b418-8543-49ae-b4d8-68034cdd0757",
+    "departureDateTime": "2019-04-10T04:19:52.000Z",
+    "arrivalDateTime": "2019-04-10T05:29:31.000Z",
+    "purpose": "BUSINESS"
+  }
+]

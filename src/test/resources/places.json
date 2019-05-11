@@ -1,0 +1,47 @@
+[
+  {
+    "placeId": "3dc84d15-9bd0-4aca-b11a-1aee60c9bb6b",
+    "name": "Austin, Texas",
+    "zipcode": 78758,
+    "city": "Austin",
+    "state": "Texas",
+    "county": "Lamar",
+    "country": "United States"
+  },
+  {
+    "placeId": "cc7f75c2-0d49-4d44-8898-296268d14115",
+    "name": "Chicago, Illinois",
+    "zipcode": 60007,
+    "city": "Chicago",
+    "state": "Illinois",
+    "county": "Cook",
+    "country": "United States"
+  },
+  {
+    "placeId": "8c42b12a-bfce-449f-aa49-bd256d13d7f1",
+    "name": "San Francisco, California",
+    "zipcode": 94016,
+    "city": "San Francisco",
+    "state": "California",
+    "county": "San Francisco",
+    "country": "United States"
+  },
+  {
+    "placeId": "1ac1b418-8543-49ae-b4d8-68034cdd0757",
+    "name": "Miami, Florida",
+    "zipcode": 33101,
+    "city": "Miami",
+    "state": "Florida",
+    "county": "Miami-Dade",
+    "country": "United States"
+  },
+  {
+    "placeId": "ad44274b-685e-4a96-9a76-74bec9894fc0",
+    "name": "Portland, Oregon",
+    "zipcode": 97035,
+    "city": "Portland",
+    "state": "Oregon",
+    "county": "Multnomah",
+    "country": "United States"
+  }
+]
