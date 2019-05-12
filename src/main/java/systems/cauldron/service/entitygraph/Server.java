@@ -42,7 +42,7 @@ public class Server {
     }
 
     private static String getGraphEndpointUrl() {
-        return "http://0.0.0.0:3330/dataset";
+        return "http://fuseki-docker:3030/dataset";
     }
 
     private static ServerConfiguration getConfig(InetAddress address) {
