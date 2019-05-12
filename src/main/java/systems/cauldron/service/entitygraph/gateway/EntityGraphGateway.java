@@ -53,6 +53,31 @@ public abstract class EntityGraphGateway {
         return !conflict;
     }
 
+    public boolean createOrUpdate(String entityId, JsonObject jsonObject) {
+        boolean isUpdate;
+        String entityUri = entityBaseUri + entityId;
+        Model model = buildModel(entityId, jsonObject);
+        try (RDFConnection conn = RDFConnectionFactory.connect(endpointUrl)) {
+            conn.begin(ReadWrite.WRITE);
+            try {
+                String queryString = String.format("ASK { <%s> ?p ?o }", entityUri);
+                isUpdate = conn.queryAsk(queryString);
+                //TODO: write a DELETE INSERT statement instead
+                if (isUpdate) {
+                    String updateString = String.format("DELETE WHERE { <%s> ?p ?o }", entityUri);
+                    UpdateRequest updateRequest = UpdateFactory.create(updateString);
+                    conn.update(updateRequest);
+                }
+                conn.load(model);
+                conn.commit();
+            } finally {
+                conn.end();
+            }
+        }
+        model.close();
+        return !isUpdate;
+    }
+
     public Optional<JsonObject> read(String entityId) {
         String entityUri = entityBaseUri + entityId;
         Map<String, RDFNode> resultMap = new HashMap<>();
@@ -60,7 +85,7 @@ public abstract class EntityGraphGateway {
             Txn.executeRead(conn, () -> {
                 String queryString = String.format("SELECT ?p ?o WHERE { <%s> ?p ?o }", entityUri);
                 conn.querySelect(queryString, qs -> {
-                    String p = qs.get("p").asResource().getURI().replace(baseUri, "");
+                    String p = getPropertyLocalName(qs.get("p"));
                     RDFNode o = qs.get("o");
                     resultMap.put(p, o);
                 });
@@ -74,18 +99,18 @@ public abstract class EntityGraphGateway {
         }
     }
 
-    public JsonArray read() {
+    public JsonArray list() {
         Map<String, Map<String, RDFNode>> resultMap = new HashMap<>();
         try (RDFConnection conn = RDFConnectionFactory.connect(endpointUrl)) {
             Txn.executeRead(conn, () -> {
-                //TODO: figure out the correct SPARQL statement to filter things on the database instead of here
+                //TODO: figure out the correct SPARQL statement to filter things on the database instead of in-memory here
                 String queryString = String.format("SELECT ?s ?p ?o WHERE { ?s ?p ?o }");
                 conn.querySelect(queryString, qs -> {
                     String s = qs.get("s").asResource().getURI();
                     if (s.startsWith(entityTypeUri)) {
                         s = s.replace(entityTypeUri + "s/", "");
                         Map<String, RDFNode> entityResultMap = resultMap.computeIfAbsent(s, x -> new HashMap<>());
-                        String p = qs.get("p").asResource().getURI().replace(baseUri, "");
+                        String p = getPropertyLocalName(qs.get("p"));
                         RDFNode o = qs.get("o");
                         entityResultMap.put(p, o);
                     }
@@ -111,5 +136,9 @@ public abstract class EntityGraphGateway {
     protected abstract Model buildModel(String id, JsonObject jsonObject);
 
     protected abstract JsonObject buildJson(String id, Map<String, RDFNode> resultMap);
+
+    private String getPropertyLocalName(RDFNode property) {
+        return property.asResource().getURI().replace(baseUri, "");
+    }
 
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
 import java.io.DataOutputStream;
@@ -73,41 +74,34 @@ public class ServerTest {
 
     @Test
     public void testUserEntity() throws Exception {
-        String apiRoot = getApiEndpoint() + "/users";
-        List<JsonObject> objects = loadObjects("/users.json");
-        for (JsonObject object : objects) {
-            assertCrudability(apiRoot, object.getString("userId"), object);
-        }
-        loadEntities("users");
-        List<JsonObject> jsonObjects = loadObjects("/users.json");
-        String queryEndpoint = getApiEndpoint() + "/users";
-        assertEntityListing(queryEndpoint, "userId", jsonObjects);
+        testEntity("user", "name");
     }
 
     @Test
     public void testPlaceEntity() throws Exception {
-        String apiRoot = getApiEndpoint() + "/places";
-        List<JsonObject> objects = loadObjects("/places.json");
-        for (JsonObject object : objects) {
-            assertCrudability(apiRoot, object.getString("placeId"), object);
-        }
-        loadEntities("places");
-        List<JsonObject> jsonObjects = loadObjects("/places.json");
-        String queryEndpoint = getApiEndpoint() + "/places";
-        assertEntityListing(queryEndpoint, "placeId", jsonObjects);
+        testEntity("place", "name");
     }
 
     @Test
     public void testTripEntity() throws Exception {
-        String apiRoot = getApiEndpoint() + "/trips";
-        List<JsonObject> objects = loadObjects("/trips.json");
+        testEntity("trip", "purpose");
+    }
+
+    private void testEntity(String entityType, String modifiableStringPropertyKey) throws IOException {
+        String entityIdKey = entityType + "Id";
+        String entityTypePlural = entityType + "s";
+        String entityEndpointPath = "/" + entityTypePlural;
+        String entityResourceFilePath = entityEndpointPath + ".json";
+        String apiRoot = getApiEndpoint() + entityEndpointPath;
+        List<JsonObject> objects = loadObjects(entityResourceFilePath);
         for (JsonObject object : objects) {
-            assertCrudability(apiRoot, object.getString("tripId"), object);
+            assertPostability(apiRoot, entityIdKey, object);
+            assertPutability(apiRoot, entityIdKey, object, modifiableStringPropertyKey);
         }
-        loadEntities("trips");
-        List<JsonObject> jsonObjects = loadObjects("/trips.json");
-        String queryEndpoint = getApiEndpoint() + "/trips";
-        assertEntityListing(queryEndpoint, "tripId", jsonObjects);
+        loadEntities(entityTypePlural);
+        List<JsonObject> jsonObjects = loadObjects(entityResourceFilePath);
+        String queryEndpoint = getApiEndpoint() + entityEndpointPath;
+        assertEntityListing(queryEndpoint, entityIdKey, jsonObjects);
     }
 
     @Test
@@ -157,7 +151,8 @@ public class ServerTest {
         }
     }
 
-    private void assertCrudability(String entityRoot, String entityId, JsonObject entity) throws IOException {
+    private void assertPostability(String entityRoot, String idKey, JsonObject entity) throws IOException {
+        String entityId = entity.getString(idKey);
         String testLocation = entityRoot + "/" + entityId;
         createEntity(entityRoot, entity);
         assertEntityExists(testLocation, entity);
@@ -165,7 +160,28 @@ public class ServerTest {
         assertEntityNotExists(testLocation);
     }
 
-    public static void createEntity(String urlString, JsonObject object) throws IOException {
+    private void assertPutability(String entityRoot, String idKey, JsonObject entity, String keyToModify) throws IOException {
+        String entityId = entity.getString(idKey);
+        String testLocation = entityRoot + "/" + entityId;
+        createOrUpdateEntity(testLocation, entity);
+        assertEntityExists(testLocation, entity);
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        entity.forEach((k, v) -> {
+            if (keyToModify.equals(k)) {
+                String modifiedValue = entity.getString(k) + "test";
+                objectBuilder.add(k, modifiedValue);
+            } else {
+                objectBuilder.add(k, v);
+            }
+        });
+        JsonObject modified = objectBuilder.build();
+        createOrUpdateEntity(testLocation, modified);
+        assertEntityExists(testLocation, modified);
+        deleteEntity(testLocation);
+        assertEntityNotExists(testLocation);
+    }
+
+    public static int createEntity(String urlString, JsonObject object) throws IOException {
         URL url = tryConstructUrl(urlString);
         byte[] body = object.toString().getBytes(StandardCharsets.UTF_8);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -176,7 +192,21 @@ public class ServerTest {
         try (DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
             dataOutputStream.write(body);
         }
-        int responseCode = connection.getResponseCode();
+        return connection.getResponseCode();
+    }
+
+    public static int createOrUpdateEntity(String urlString, JsonObject object) throws IOException {
+        URL url = tryConstructUrl(urlString);
+        byte[] body = object.toString().getBytes(StandardCharsets.UTF_8);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PUT");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Length", Integer.toString(body.length));
+        connection.setDoOutput(true);
+        try (DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
+            dataOutputStream.write(body);
+        }
+        return connection.getResponseCode();
     }
 
     public static JsonObject executeQuery(String urlString, String queryString) throws IOException {
@@ -205,7 +235,7 @@ public class ServerTest {
         Assertions.assertEquals(200, connection.getResponseCode());
         try (JsonReader reader = Json.createReader(connection.getInputStream())) {
             JsonObject actual = reader.readObject();
-            Assertions.assertEquals(actual, expected);
+            Assertions.assertEquals(expected, actual);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

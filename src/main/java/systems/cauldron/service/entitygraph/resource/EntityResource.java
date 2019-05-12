@@ -13,6 +13,13 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static javax.ws.rs.core.Response.Status;
+import static javax.ws.rs.core.Response.created;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.serverError;
+import static javax.ws.rs.core.Response.status;
+
 public abstract class EntityResource {
 
     private static Logger logger = Logger.getGlobal();
@@ -28,18 +35,37 @@ public abstract class EntityResource {
         try (JsonReader reader = Json.createReader(new StringReader(jsonObjectString))) {
             jsonObject = reader.readObject();
         } catch (Exception ex) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return status(Status.BAD_REQUEST).build();
         }
         String id = jsonObject.getString(entityIdKey);
         try {
             if (gateway.create(id, jsonObject)) {
-                return Response.created(URI.create(BASE_URI + entityRootPath + id)).build();
+                return created(URI.create(BASE_URI + entityRootPath + id)).build();
             } else {
-                return Response.status(Response.Status.CONFLICT).build();
+                return status(Status.CONFLICT).build();
             }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "exception while creating entity", ex);
-            return Response.serverError().build();
+            return serverError().build();
+        }
+    }
+
+    public Response put(String id, String jsonObjectString) {
+        JsonObject jsonObject;
+        try (JsonReader reader = Json.createReader(new StringReader(jsonObjectString))) {
+            jsonObject = reader.readObject();
+        } catch (Exception ex) {
+            return status(Status.BAD_REQUEST).build();
+        }
+        try {
+            if (gateway.createOrUpdate(id, jsonObject)) {
+                return created(URI.create(BASE_URI + entityRootPath + id)).build();
+            } else {
+                return status(Status.OK).build();
+            }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "exception while creating or updating entity", ex);
+            return serverError().build();
         }
     }
 
@@ -49,28 +75,28 @@ public abstract class EntityResource {
             result = gateway.read(id);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "exception while retrieving entity", ex);
-            return Response.serverError().build();
+            return serverError().build();
         }
         if (result.isPresent()) {
             JsonObject jsonObject = result.get();
-            return Response.ok(jsonObject.toString()).build();
+            return ok(jsonObject.toString()).build();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return status(Status.NOT_FOUND).build();
         }
     }
 
-    public Response get() {
+    public Response list() {
         JsonArray result;
         try {
-            result = gateway.read();
+            result = gateway.list();
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "exception while retrieving entity", ex);
-            return Response.serverError().build();
+            return serverError().build();
         }
         if (!result.isEmpty()) {
-            return Response.ok(result.toString()).build();
+            return ok(result.toString()).build();
         } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return status(Status.NOT_FOUND).build();
         }
     }
 
@@ -79,9 +105,9 @@ public abstract class EntityResource {
             gateway.delete(id);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "exception while deleting entity", ex);
-            return Response.serverError().build();
+            return serverError().build();
         }
-        return Response.noContent().build();
+        return noContent().build();
     }
 
 }

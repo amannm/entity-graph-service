@@ -9,6 +9,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -36,6 +37,13 @@ public class TripResource extends EntityResource {
         return super.post(jsonObjectString);
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes("application/json")
+    public Response put(@PathParam("id") String id, String jsonObjectString) {
+        return super.put(id, jsonObjectString);
+    }
+
     @GET
     @Produces("application/json")
     @Path("{id}")
@@ -45,8 +53,8 @@ public class TripResource extends EntityResource {
 
     @GET
     @Produces("application/json")
-    public Response get() {
-        return super.get();
+    public Response list() {
+        return super.list();
     }
 
     @DELETE
