@@ -53,6 +53,10 @@ dependencies {
 
 }
 
+test {
+    useJUnitPlatform()
+}
+
 compileJava {
     inputs.property("moduleName", 'systems.cauldron.service.entitygraph')
     doFirst {
