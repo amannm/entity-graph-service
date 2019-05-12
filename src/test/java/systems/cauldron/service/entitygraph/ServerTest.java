@@ -178,8 +178,9 @@ public class ServerTest {
     private void assertPostability(String entityRoot, String idKey, JsonObject entity) throws IOException {
         String entityId = entity.getString(idKey);
         String testLocation = entityRoot + "/" + entityId;
-        createEntity(entityRoot, entity);
+        assertEquals(201, createEntity(entityRoot, entity));
         assertEntityExists(testLocation, entity);
+        assertEquals(409, createEntity(entityRoot, entity));
         deleteEntity(testLocation);
         assertEntityNotExists(testLocation);
     }
@@ -187,7 +188,7 @@ public class ServerTest {
     private void assertPutability(String entityRoot, String idKey, JsonObject entity, String keyToModify) throws IOException {
         String entityId = entity.getString(idKey);
         String testLocation = entityRoot + "/" + entityId;
-        createOrUpdateEntity(testLocation, entity);
+        assertEquals(201, createOrUpdateEntity(testLocation, entity));
         assertEntityExists(testLocation, entity);
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
         entity.forEach((k, v) -> {
@@ -199,7 +200,7 @@ public class ServerTest {
             }
         });
         JsonObject modified = objectBuilder.build();
-        createOrUpdateEntity(testLocation, modified);
+        assertEquals(200, createOrUpdateEntity(testLocation, modified));
         assertEntityExists(testLocation, modified);
         deleteEntity(testLocation);
         assertEntityNotExists(testLocation);
@@ -208,7 +209,7 @@ public class ServerTest {
     private void assertPatchability(String entityRoot, String idKey, JsonObject entity, String keyToModify) throws IOException {
         String entityId = entity.getString(idKey);
         String testLocation = entityRoot + "/" + entityId;
-        createOrUpdateEntity(testLocation, entity);
+        assertEquals(201, createOrUpdateEntity(testLocation, entity));
         assertEntityExists(testLocation, entity);
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
         JsonObjectBuilder patchObjectBuilder = Json.createObjectBuilder();
@@ -223,10 +224,11 @@ public class ServerTest {
         });
         JsonObject modified = objectBuilder.build();
         JsonObject patch = patchObjectBuilder.build();
-        updateEntity(testLocation, patch);
+        assertEquals(204, updateEntity(testLocation, patch));
         assertEntityExists(testLocation, modified);
         deleteEntity(testLocation);
         assertEntityNotExists(testLocation);
+        assertEquals(404, updateEntity(testLocation, patch));
     }
 
     public static int createEntity(String urlString, JsonObject object) throws IOException {

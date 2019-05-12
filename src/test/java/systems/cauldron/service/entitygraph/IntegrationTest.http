@@ -39,7 +39,8 @@ PATCH http://localhost:8080/api/users/tonystark
 Content-Type: application/json
 
 {
-  "name": "Tony Farto"
+  "name": "Tony Farto",
+  "bio": "Lazy couch-bound slob alter-ego of Tony Stark"
 }
 
 ###

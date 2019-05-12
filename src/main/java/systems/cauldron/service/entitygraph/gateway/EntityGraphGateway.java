@@ -106,7 +106,7 @@ public abstract class EntityGraphGateway {
             }
         }
         model.close();
-        return !patchable;
+        return patchable;
     }
 
     public Optional<JsonObject> read(String entityId) {
