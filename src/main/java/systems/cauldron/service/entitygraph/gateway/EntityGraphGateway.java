@@ -5,6 +5,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.system.Txn;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
@@ -29,7 +30,7 @@ public abstract class EntityGraphGateway {
         this.endpointUrl = endpointUrl;
         this.baseUri = baseUri;
         this.entityTypeUri = baseUri + entityType;
-        this.entityBaseUri = baseUri + entityType + "s/";
+        this.entityBaseUri = entityTypeUri + "s/";
     }
 
     public boolean create(String entityId, JsonObject jsonObject) {
@@ -43,6 +44,8 @@ public abstract class EntityGraphGateway {
                 conflict = conn.queryAsk(queryString);
                 if (!conflict) {
                     conn.load(model);
+                } else {
+                    conn.abort();
                 }
                 conn.commit();
             } finally {
@@ -62,7 +65,6 @@ public abstract class EntityGraphGateway {
             try {
                 String queryString = String.format("ASK { <%s> ?p ?o }", entityUri);
                 isUpdate = conn.queryAsk(queryString);
-                //TODO: write a DELETE INSERT statement instead
                 if (isUpdate) {
                     String updateString = String.format("DELETE WHERE { <%s> ?p ?o }", entityUri);
                     UpdateRequest updateRequest = UpdateFactory.create(updateString);
@@ -76,6 +78,35 @@ public abstract class EntityGraphGateway {
         }
         model.close();
         return !isUpdate;
+    }
+
+    public boolean update(String entityId, JsonObject jsonObject) {
+        boolean patchable;
+        String entityUri = entityBaseUri + entityId;
+        Model model = buildModel(entityId, jsonObject);
+        try (RDFConnection conn = RDFConnectionFactory.connect(endpointUrl)) {
+            conn.begin(ReadWrite.WRITE);
+            try {
+                String queryString = String.format("ASK { <%s> ?p ?o }", entityUri);
+                patchable = conn.queryAsk(queryString);
+                if (patchable) {
+                    model.listStatements().forEachRemaining(statement -> {
+                        String predicate = FmtUtils.stringForRDFNode(statement.getPredicate());
+                        String object = FmtUtils.stringForRDFNode(statement.getObject());
+                        String updateString = String.format("DELETE { ?s ?p ?o } INSERT { ?s ?p %s } WHERE { ?s ?p ?o . <%s> %s ?o }", object, entityUri, predicate);
+                        UpdateRequest updateRequest = UpdateFactory.create(updateString);
+                        conn.update(updateRequest);
+                    });
+                    conn.commit();
+                } else {
+                    conn.abort();
+                }
+            } finally {
+                conn.end();
+            }
+        }
+        model.close();
+        return !patchable;
     }
 
     public Optional<JsonObject> read(String entityId) {
@@ -103,23 +134,21 @@ public abstract class EntityGraphGateway {
         Map<String, Map<String, RDFNode>> resultMap = new HashMap<>();
         try (RDFConnection conn = RDFConnectionFactory.connect(endpointUrl)) {
             Txn.executeRead(conn, () -> {
-                //TODO: figure out the correct SPARQL statement to filter things on the database instead of in-memory here
-                String queryString = String.format("SELECT ?s ?p ?o WHERE { ?s ?p ?o }");
+                String queryString = String.format("SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s a <%s> }", entityTypeUri);
                 conn.querySelect(queryString, qs -> {
-                    String s = qs.get("s").asResource().getURI();
-                    if (s.startsWith(entityTypeUri)) {
-                        s = s.replace(entityTypeUri + "s/", "");
-                        Map<String, RDFNode> entityResultMap = resultMap.computeIfAbsent(s, x -> new HashMap<>());
-                        String p = getPropertyLocalName(qs.get("p"));
-                        RDFNode o = qs.get("o");
-                        entityResultMap.put(p, o);
-                    }
+                    String s = getResourceLocalName(qs.get("s"));
+                    Map<String, RDFNode> entityPropertyMap = resultMap.computeIfAbsent(s, x -> new HashMap<>());
+                    String p = getPropertyLocalName(qs.get("p"));
+                    RDFNode o = qs.get("o");
+                    entityPropertyMap.put(p, o);
                 });
             });
         }
-        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-        resultMap.keySet().stream().map(id -> buildJson(id, resultMap.get(id))).forEach(arrayBuilder::add);
-        return arrayBuilder.build();
+        JsonArrayBuilder results = Json.createArrayBuilder();
+        resultMap.entrySet().stream()
+                .map(e -> buildJson(e.getKey(), e.getValue()))
+                .forEach(results::add);
+        return results.build();
     }
 
     public void delete(String entityId) {
@@ -137,8 +166,12 @@ public abstract class EntityGraphGateway {
 
     protected abstract JsonObject buildJson(String id, Map<String, RDFNode> resultMap);
 
-    private String getPropertyLocalName(RDFNode property) {
-        return property.asResource().getURI().replace(baseUri, "");
+    private String getResourceLocalName(RDFNode node) {
+        return node.asResource().getURI().replace(entityBaseUri, "");
+    }
+
+    private String getPropertyLocalName(RDFNode node) {
+        return node.asResource().getURI().replace(baseUri, "");
     }
 
 }

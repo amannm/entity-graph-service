@@ -20,39 +20,50 @@ public class EntityModelBuilder {
         this.baseUri = baseUri;
         this.source = source;
         this.model = ModelFactory.createDefaultModel();
-        this.subject = model.createResource(baseUri + entityType + "s/" + entityId);
-        model.add(subject, model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "type"), baseUri + entityType);
+        String entityTypeUri = baseUri + entityType;
+        this.subject = model.createResource(entityTypeUri + "s/" + entityId);
+        model.add(subject,
+                model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "type"),
+                model.createResource(entityTypeUri));
     }
 
     public EntityModelBuilder addStringProperty(String propertyName) {
-        model.add(subject,
-                model.createProperty(baseUri, propertyName),
-                model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDstring)
-        );
+        if (source.containsKey(propertyName)) {
+            model.add(subject,
+                    model.createProperty(baseUri, propertyName),
+                    model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDstring)
+            );
+        }
         return this;
     }
 
     public EntityModelBuilder addIntegerProperty(String propertyName) {
-        model.add(subject,
-                model.createProperty(baseUri, propertyName),
-                model.createTypedLiteral(source.getInt(propertyName), XSDDatatype.XSDinteger)
-        );
+        if (source.containsKey(propertyName)) {
+            model.add(subject,
+                    model.createProperty(baseUri, propertyName),
+                    model.createTypedLiteral(source.getInt(propertyName), XSDDatatype.XSDinteger)
+            );
+        }
         return this;
     }
 
     public EntityModelBuilder addTimestampProperty(String propertyName) {
-        model.add(subject,
-                model.createProperty(baseUri, propertyName),
-                model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDdateTimeStamp)
-        );
+        if (source.containsKey(propertyName)) {
+            model.add(subject,
+                    model.createProperty(baseUri, propertyName),
+                    model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDdateTimeStamp)
+            );
+        }
         return this;
     }
 
     public EntityModelBuilder addObjectProperty(String propertyName, String objectType) {
-        model.add(subject,
-                model.createProperty(baseUri, propertyName),
-                model.createResource(baseUri + objectType + "s/" + source.getString(propertyName))
-        );
+        if (source.containsKey(propertyName)) {
+            model.add(subject,
+                    model.createProperty(baseUri, propertyName),
+                    model.createResource(baseUri + objectType + "s/" + source.getString(propertyName))
+            );
+        }
         return this;
     }
 

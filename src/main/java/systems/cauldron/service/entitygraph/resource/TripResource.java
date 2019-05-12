@@ -8,6 +8,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -23,9 +24,7 @@ public class TripResource extends EntityResource {
 
     @PostConstruct
     public void initialize() {
-        String graphEndpointUrl = request.context()
-                .get("graphEndpointUrl", String.class)
-                .orElseThrow();
+        String graphEndpointUrl = request.context().get("databaseUrl", String.class).orElseThrow();
         gateway = new TripGraphGateway(BASE_URI, graphEndpointUrl);
         entityIdKey = TripGraphGateway.ENTITY_TYPE + "Id";
         entityRootPath = TripGraphGateway.ENTITY_TYPE + "s/";
@@ -42,6 +41,13 @@ public class TripResource extends EntityResource {
     @Consumes("application/json")
     public Response put(@PathParam("id") String id, String jsonObjectString) {
         return super.put(id, jsonObjectString);
+    }
+
+    @PATCH
+    @Path("{id}")
+    @Consumes("application/json")
+    public Response patch(@PathParam("id") String id, String jsonObjectString) {
+        return super.patch(id, jsonObjectString);
     }
 
     @GET

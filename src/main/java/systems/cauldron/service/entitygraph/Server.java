@@ -19,19 +19,20 @@ import java.util.logging.Logger;
 public class Server {
 
     public static void main(final String[] args) throws IOException {
-        start("fuseki-docker");
+        ServerConfig config = new ServerConfig();
+        config.setServerAddress(InetAddress.getLocalHost());
+        config.setServerPort(8080);
+        config.setDatabaseAddress("fuseki-docker");
+        config.setDatabasePort(3030);
+        start(config);
     }
 
-    static WebServer start(String databaseHostname) throws IOException {
+    static WebServer start(ServerConfig config) throws IOException {
         Logger logger = setupLogger();
-        InetAddress localHost = InetAddress.getLocalHost();
-        WebServer server = WebServer.create(getConfig(localHost), getRouting());
-        server.context()
-                .register("graphEndpointUrl", getGraphEndpointUrl(databaseHostname));
-        server.start().thenAccept(ws ->
-                logger.log(Level.INFO, "server started @ http://" + localHost.getHostAddress() + ":" + ws.port()));
-        server.whenShutdown().thenRun(() ->
-                logger.log(Level.INFO, "server stopped"));
+        WebServer server = WebServer.create(getConfig(config), getRouting());
+        server.context().register("databaseUrl", config.getDatabaseUrl());
+        server.start().thenAccept(ws -> logger.log(Level.INFO, "server started @ " + config.getServerUrl()));
+        server.whenShutdown().thenRun(() -> logger.log(Level.INFO, "server stopped"));
         return server;
     }
 
@@ -41,14 +42,10 @@ public class Server {
         return Logger.getGlobal();
     }
 
-    private static String getGraphEndpointUrl(String databaseHostname) {
-        return "http://" + databaseHostname + ":3030/dataset";
-    }
-
-    private static ServerConfiguration getConfig(InetAddress address) {
+    private static ServerConfiguration getConfig(ServerConfig config) {
         return ServerConfiguration.builder()
-                .bindAddress(address)
-                .port(8080)
+                .bindAddress(config.getServerAddress())
+                .port(config.getServerPort())
                 .build();
     }
 

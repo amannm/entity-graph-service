@@ -25,17 +25,23 @@ public class EntityJsonBuilder {
     }
 
     public EntityJsonBuilder addStringProperty(String propertyName) {
-        objectBuilder.add(propertyName, resultMap.get(propertyName).asLiteral().getString());
+        if (resultMap.containsKey(propertyName)) {
+            objectBuilder.add(propertyName, resultMap.get(propertyName).asLiteral().getString());
+        }
         return this;
     }
 
     public EntityJsonBuilder addIntegerProperty(String propertyName) {
-        objectBuilder.add(propertyName, resultMap.get(propertyName).asLiteral().getInt());
+        if (resultMap.containsKey(propertyName)) {
+            objectBuilder.add(propertyName, resultMap.get(propertyName).asLiteral().getInt());
+        }
         return this;
     }
 
     public EntityJsonBuilder addObjectProperty(String propertyName, String objectType) {
-        objectBuilder.add(propertyName, resultMap.get(propertyName).asResource().getURI().replace(entityBaseUri + objectType + "s/", ""));
+        if (resultMap.containsKey(propertyName)) {
+            objectBuilder.add(propertyName, resultMap.get(propertyName).asResource().getURI().replace(entityBaseUri + objectType + "s/", ""));
+        }
         return this;
     }
 

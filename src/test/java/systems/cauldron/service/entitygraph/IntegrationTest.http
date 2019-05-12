@@ -1,0 +1,59 @@
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "userId": "tonystark",
+  "name": "Tony Stark",
+  "email": "tony@avengers.org",
+  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
+  "company": "Avengers Inc."
+}
+
+###
+
+PUT http://localhost:8080/api/users/tonystark
+Content-Type: application/json
+
+{
+  "name": "Tony Stark",
+  "email": "tony@avengers.org",
+  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
+  "company": "Avengers Inc."
+}
+
+###
+
+PUT http://localhost:8080/api/users/tonystark
+Content-Type: application/json
+
+{
+  "name": "Tony Farto",
+  "email": "tony@avengers.org",
+  "bio": "Lazy couch-bound slob alter-ego of Tony Stark",
+  "company": "Avengers Inc."
+}
+
+###
+
+PATCH http://localhost:8080/api/users/tonystark
+Content-Type: application/json
+
+{
+  "name": "Tony Farto"
+}
+
+###
+
+GET http://localhost:8080/api/users/tonystark
+Accept: application/json
+
+###
+
+GET http://localhost:8080/api/users
+Accept: application/json
+
+###
+
+DELETE http://localhost:8080/api/users/tonystark
+
+###

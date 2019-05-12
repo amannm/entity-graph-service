@@ -28,9 +28,7 @@ public class QueryResource {
 
     @PostConstruct
     public void initialize() {
-        String graphEndpointUrl = request.context()
-                .get("graphEndpointUrl", String.class)
-                .orElseThrow();
+        String graphEndpointUrl = request.context().get("databaseUrl", String.class).orElseThrow();
         gateway = new QueryGraphGateway(graphEndpointUrl);
     }
 

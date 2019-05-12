@@ -6,7 +6,6 @@ import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,27 +17,54 @@ import javax.json.JsonReader;
 import javax.json.JsonValue;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class ServerTest {
 
     private static WebServer webServer;
+    private static ServerConfig config;
 
     @BeforeAll
     public static void startServer() throws Exception {
-        webServer = Server.start("localhost");
+        allowMethods("PATCH");
+        config = new ServerConfig();
+        config.setServerAddress(InetAddress.getLocalHost());
+        config.setServerPort(getRandomAvailablePort());
+        config.setDatabaseAddress(InetAddress.getLocalHost().getHostAddress());
+        config.setDatabasePort(getRandomAvailablePort());
+        webServer = Server.start(config);
         while (!webServer.isRunning()) {
-            Thread.sleep(1 * 1000);
+            Thread.sleep(1000);
         }
+    }
+
+    private static int getRandomAvailablePort() throws IOException {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        }
+    }
+
+    private String getApiEndpoint() {
+        return config.getServerUrl() + "/api";
     }
 
     @AfterAll
@@ -57,6 +83,7 @@ public class ServerTest {
     public void startGraphStore() {
         dataset = DatasetFactory.createTxnMem();
         fusekiServer = FusekiServer.create()
+                .port(config.getDatabasePort())
                 .add("/dataset", dataset)
                 .build();
         fusekiServer.start();
@@ -97,6 +124,7 @@ public class ServerTest {
         for (JsonObject object : objects) {
             assertPostability(apiRoot, entityIdKey, object);
             assertPutability(apiRoot, entityIdKey, object, modifiableStringPropertyKey);
+            assertPatchability(apiRoot, entityIdKey, object, modifiableStringPropertyKey);
         }
         loadEntities(entityTypePlural);
         List<JsonObject> jsonObjects = loadObjects(entityResourceFilePath);
@@ -110,7 +138,7 @@ public class ServerTest {
         String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
-        Assertions.assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
+        assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
     }
 
     @Test
@@ -124,12 +152,9 @@ public class ServerTest {
                 "?user <http://cauldron.systems/graph/name> 'Tony Stark' }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
-        Assertions.assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
+        assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
     }
 
-    private String getApiEndpoint() {
-        return "http://" + webServer.configuration().bindAddress().getHostAddress() + ":" + webServer.port() + "/api";
-    }
 
     private void loadEntities(String... resourceNames) {
         for (String resourceName : resourceNames) {
@@ -138,7 +163,7 @@ public class ServerTest {
                 try {
                     createEntity(entityRoot, e);
                 } catch (IOException ex) {
-                    Assertions.fail(ex);
+                    fail(ex);
                 }
             });
         }
@@ -180,6 +205,30 @@ public class ServerTest {
         assertEntityNotExists(testLocation);
     }
 
+    private void assertPatchability(String entityRoot, String idKey, JsonObject entity, String keyToModify) throws IOException {
+        String entityId = entity.getString(idKey);
+        String testLocation = entityRoot + "/" + entityId;
+        createOrUpdateEntity(testLocation, entity);
+        assertEntityExists(testLocation, entity);
+        JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+        JsonObjectBuilder patchObjectBuilder = Json.createObjectBuilder();
+        entity.forEach((k, v) -> {
+            if (keyToModify.equals(k)) {
+                String modifiedValue = entity.getString(k) + "test";
+                objectBuilder.add(k, modifiedValue);
+                patchObjectBuilder.add(k, modifiedValue);
+            } else {
+                objectBuilder.add(k, v);
+            }
+        });
+        JsonObject modified = objectBuilder.build();
+        JsonObject patch = patchObjectBuilder.build();
+        updateEntity(testLocation, patch);
+        assertEntityExists(testLocation, modified);
+        deleteEntity(testLocation);
+        assertEntityNotExists(testLocation);
+    }
+
     public static int createEntity(String urlString, JsonObject object) throws IOException {
         URL url = tryConstructUrl(urlString);
         byte[] body = object.toString().getBytes(StandardCharsets.UTF_8);
@@ -208,6 +257,20 @@ public class ServerTest {
         return connection.getResponseCode();
     }
 
+    public static int updateEntity(String urlString, JsonObject object) throws IOException {
+        URL url = tryConstructUrl(urlString);
+        byte[] body = object.toString().getBytes(StandardCharsets.UTF_8);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("PATCH");
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Content-Length", Integer.toString(body.length));
+        connection.setDoOutput(true);
+        try (DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
+            dataOutputStream.write(body);
+        }
+        return connection.getResponseCode();
+    }
+
     public static JsonObject executeQuery(String urlString, String queryString) throws IOException {
         URL url = tryConstructUrl(urlString);
         byte[] body = queryString.getBytes(StandardCharsets.UTF_8);
@@ -219,7 +282,7 @@ public class ServerTest {
         try (DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
             dataOutputStream.write(body);
         }
-        Assertions.assertEquals(200, connection.getResponseCode());
+        assertEquals(200, connection.getResponseCode());
         try (JsonReader jsonReader = Json.createReader(connection.getInputStream())) {
             return jsonReader.readObject();
         }
@@ -231,10 +294,10 @@ public class ServerTest {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
         connection.setDoInput(true);
-        Assertions.assertEquals(200, connection.getResponseCode());
+        assertEquals(200, connection.getResponseCode());
         try (JsonReader reader = Json.createReader(connection.getInputStream())) {
             JsonObject actual = reader.readObject();
-            Assertions.assertEquals(expected, actual);
+            assertEquals(expected, actual);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -245,7 +308,7 @@ public class ServerTest {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
-        Assertions.assertEquals(404, connection.getResponseCode());
+        assertEquals(404, connection.getResponseCode());
     }
 
     public static void assertEntityListing(String urlString, String idKey, List<JsonObject> expected) throws IOException {
@@ -254,15 +317,15 @@ public class ServerTest {
         connection.setRequestMethod("GET");
         connection.setRequestProperty("Accept", "application/json");
         connection.setDoInput(true);
-        Assertions.assertEquals(200, connection.getResponseCode());
+        assertEquals(200, connection.getResponseCode());
         try (JsonReader reader = Json.createReader(connection.getInputStream())) {
             Set<JsonObject> actual = reader.readArray().stream().map(JsonValue::asJsonObject).collect(Collectors.toSet());
             HashSet<JsonObject> extraItems = new HashSet<>(actual);
             extraItems.removeAll(expected);
-            Assertions.assertEquals(Collections.emptySet(), extraItems, "extra items in returned collection");
+            assertEquals(Collections.emptySet(), extraItems, "extra items in returned collection");
             HashSet<JsonObject> missingItems = new HashSet<>(expected);
             missingItems.removeAll(actual);
-            Assertions.assertEquals(extractConflictingEntities(idKey, expected), missingItems, "conflicting items in returned collection");
+            assertEquals(extractConflictingEntities(idKey, expected), missingItems, "conflicting items in returned collection");
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
@@ -272,7 +335,7 @@ public class ServerTest {
         URL url = tryConstructUrl(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("DELETE");
-        Assertions.assertEquals(204, connection.getResponseCode());
+        assertEquals(204, connection.getResponseCode());
     }
 
     private static URL tryConstructUrl(String urlString) {
@@ -295,6 +358,24 @@ public class ServerTest {
             }
         }
         return results;
+    }
+
+    //HACK: https://stackoverflow.com/questions/25163131/httpurlconnection-invalid-http-method-patch
+    private static void allowMethods(String... methods) {
+        try {
+            Field methodsField = HttpURLConnection.class.getDeclaredField("methods");
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(methodsField, methodsField.getModifiers() & ~Modifier.FINAL);
+            methodsField.setAccessible(true);
+            String[] oldMethods = (String[]) methodsField.get(null);
+            Set<String> methodsSet = new LinkedHashSet<>(Arrays.asList(oldMethods));
+            methodsSet.addAll(Arrays.asList(methods));
+            String[] newMethods = methodsSet.toArray(new String[0]);
+            methodsField.set(null, newMethods);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
 }

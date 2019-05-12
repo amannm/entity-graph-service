@@ -69,6 +69,25 @@ public abstract class EntityResource {
         }
     }
 
+    public Response patch(String id, String jsonObjectString) {
+        JsonObject jsonObject;
+        try (JsonReader reader = Json.createReader(new StringReader(jsonObjectString))) {
+            jsonObject = reader.readObject();
+        } catch (Exception ex) {
+            return status(Status.BAD_REQUEST).build();
+        }
+        try {
+            if (gateway.update(id, jsonObject)) {
+                return noContent().build();
+            } else {
+                return status(Status.NOT_FOUND).build();
+            }
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "exception while creating or updating entity", ex);
+            return serverError().build();
+        }
+    }
+
     public Response get(String id) {
         Optional<JsonObject> result;
         try {
