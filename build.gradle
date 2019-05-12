@@ -14,42 +14,42 @@ repositories {
 dependencies {
 
     //logging
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2+'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2+'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2+'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2+'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2+'
+    compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2+'
 
     //web server and REST endpoint
-    implementation group: 'io.helidon.webserver', name: 'helidon-webserver', version: '1+'
-    implementation group: 'io.helidon.config', name: 'helidon-config-yaml', version: '1+'
-    implementation group: 'io.helidon.media.jsonp', name: 'helidon-media-jsonp-server', version: '1+'
-    implementation group: 'javax.activation', name: 'activation', version: '1+'
-    implementation group: 'io.helidon.webserver', name: 'helidon-webserver-jersey', version: '1+'
+    compile group: 'io.helidon.webserver', name: 'helidon-webserver', version: '1+'
+    compile group: 'io.helidon.config', name: 'helidon-config-yaml', version: '1+'
+    compile group: 'io.helidon.media.jsonp', name: 'helidon-media-jsonp-server', version: '1+'
+    compile group: 'javax.activation', name: 'activation', version: '1+'
+    compile group: 'io.helidon.webserver', name: 'helidon-webserver-jersey', version: '1+'
 
     //RDF framework and SPARQL endpoint connector
-    implementation('org.apache.jena:jena-core:3+') {
+    compile('org.apache.jena:jena-core:3+') {
         exclude group: 'org.slf4j'
     }
-    implementation('org.apache.jena:jena-arq:3+') {
+    compile('org.apache.jena:jena-arq:3+') {
         exclude group: 'org.slf4j'
     }
-    implementation('org.apache.jena:jena-rdfconnection:3+') {
+    compile('org.apache.jena:jena-rdfconnection:3+') {
         exclude group: 'org.slf4j'
     }
 
     //embedded SPARQL server for unit testing
-    testImplementation('org.apache.jena:jena-fuseki-main:3+') {
+    testCompile('org.apache.jena:jena-fuseki-main:3+') {
         exclude group: 'org.slf4j'
     }
-    testImplementation('org.apache.jena:jena-tdb:3+') {
+    testCompile('org.apache.jena:jena-tdb:3+') {
         exclude group: 'org.slf4j'
     }
-    testImplementation('org.apache.jena:jena-tdb2:3+') {
+    testCompile('org.apache.jena:jena-tdb2:3+') {
         exclude group: 'org.slf4j'
     }
 
     //unit testing framework
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5+'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5+'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5+'
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5+'
 
 }
 
@@ -66,3 +66,21 @@ compileJava {
         classpath = files()
     }
 }
+
+jar {
+    archiveFileName = 'app.jar'
+    manifest {
+        attributes (
+                'Main-Class': 'systems.cauldron.service.entitygraph.Server',
+                'Class-Path': configurations.runtime.files.collect { "libs/$it.name" }.join(' ')
+        )
+    }
+}
+
+task copyLibs(type: Copy) {
+    from configurations.runtime
+    into 'build/libs/libs'
+}
+
+copyLibs.dependsOn jar
+assemble.dependsOn copyLibs
