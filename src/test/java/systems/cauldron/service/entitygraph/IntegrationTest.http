@@ -45,16 +45,38 @@ Content-Type: application/json
 
 ###
 
+DELETE http://localhost:8080/api/users/tonystark
+
+###
+
 GET http://localhost:8080/api/users/tonystark
+Accept: application/json
+
+###
+
+PUT http://localhost:8080/api/users/thorodinson
+Content-Type: application/json
+
+{
+  "userId": "thorodinson",
+  "name": "Thor Odinson",
+  "email": "thor@avengers.org",
+  "bio": "Thor is a fictional superhero appearing in American comic books published by Marvel Comics. The character, which is based on the Norse deity of the same name, is the Asgardian god of thunder who possesses the enchanted hammer, Mjolnir, which grants him the ability to fly and manipulate weather amongst his other superhuman attributes.",
+  "company": "Avengers Inc."
+}
+
+###
+
+DELETE http://localhost:8080/api/users/thorodinson
+
+###
+
+GET http://localhost:8080/api/users/thorodinson
 Accept: application/json
 
 ###
 
 GET http://localhost:8080/api/users
 Accept: application/json
-
-###
-
-DELETE http://localhost:8080/api/users/tonystark
 
 ###

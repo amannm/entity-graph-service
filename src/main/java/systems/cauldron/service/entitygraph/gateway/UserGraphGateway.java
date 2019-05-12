@@ -6,6 +6,7 @@ import systems.cauldron.service.entitygraph.gateway.util.EntityJsonBuilder;
 import systems.cauldron.service.entitygraph.gateway.util.EntityModelBuilder;
 
 import javax.json.JsonObject;
+import java.util.Collections;
 import java.util.Map;
 
 public class UserGraphGateway extends EntityGraphGateway {
@@ -13,7 +14,7 @@ public class UserGraphGateway extends EntityGraphGateway {
     public static final String ENTITY_TYPE = "user";
 
     public UserGraphGateway(String baseUri, String graphEndpointUrl) {
-        super(graphEndpointUrl, baseUri, ENTITY_TYPE);
+        super(graphEndpointUrl, baseUri, ENTITY_TYPE, Collections.singleton("name"));
     }
 
     @Override

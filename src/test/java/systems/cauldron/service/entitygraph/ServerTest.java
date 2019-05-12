@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -101,20 +102,20 @@ public class ServerTest {
 
     @Test
     public void testUserEntity() throws Exception {
-        testEntity("user", "name");
+        testEntity("user", "name", Collections.singleton("name"));
     }
 
     @Test
     public void testPlaceEntity() throws Exception {
-        testEntity("place", "name");
+        testEntity("place", "name", Collections.singleton("name"));
     }
 
     @Test
     public void testTripEntity() throws Exception {
-        testEntity("trip", "purpose");
+        testEntity("trip", "purpose", Stream.of("userId", "departureDateTime").collect(Collectors.toSet()));
     }
 
-    private void testEntity(String entityType, String modifiableStringPropertyKey) throws IOException {
+    private void testEntity(String entityType, String modifiableStringPropertyKey, Set<String> summaryFields) throws IOException {
         String entityIdKey = entityType + "Id";
         String entityTypePlural = entityType + "s";
         String entityEndpointPath = "/" + entityTypePlural;
@@ -127,7 +128,7 @@ public class ServerTest {
             assertPatchability(apiRoot, entityIdKey, object, modifiableStringPropertyKey);
         }
         loadEntities(entityTypePlural);
-        List<JsonObject> jsonObjects = loadObjects(entityResourceFilePath);
+        List<JsonObject> jsonObjects = loadSummaryObjects(entityResourceFilePath, entityIdKey, summaryFields);
         assertEntityListing(apiRoot, entityIdKey, jsonObjects);
     }
 
@@ -172,6 +173,17 @@ public class ServerTest {
     private List<JsonObject> loadObjects(String resourceName) {
         try (JsonReader reader = Json.createReader(this.getClass().getResourceAsStream(resourceName))) {
             return reader.readArray().stream().map(v -> (JsonObject) v).collect(Collectors.toList());
+        }
+    }
+
+    private List<JsonObject> loadSummaryObjects(String resourceName, String idField, Set<String> summaryFields) {
+        try (JsonReader reader = Json.createReader(this.getClass().getResourceAsStream(resourceName))) {
+            return reader.readArray().stream().map(v -> (JsonObject) v).map(o -> {
+                JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+                objectBuilder.add(idField, o.get(idField));
+                summaryFields.forEach(f -> objectBuilder.add(f, o.get(f)));
+                return objectBuilder.build();
+            }).collect(Collectors.toList());
         }
     }
 

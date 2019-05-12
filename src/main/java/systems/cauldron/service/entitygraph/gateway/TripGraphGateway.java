@@ -7,13 +7,15 @@ import systems.cauldron.service.entitygraph.gateway.util.EntityModelBuilder;
 
 import javax.json.JsonObject;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TripGraphGateway extends EntityGraphGateway {
 
     public static final String ENTITY_TYPE = "trip";
 
     public TripGraphGateway(String baseUri, String graphEndpointUrl) {
-        super(graphEndpointUrl, baseUri, ENTITY_TYPE);
+        super(graphEndpointUrl, baseUri, ENTITY_TYPE, Stream.of("userId", "departureDateTime").collect(Collectors.toSet()));
     }
 
     @Override

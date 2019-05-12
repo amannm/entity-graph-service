@@ -17,6 +17,8 @@ import javax.json.JsonObject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class EntityGraphGateway {
 
@@ -25,12 +27,16 @@ public abstract class EntityGraphGateway {
     protected final String baseUri;
     private final String entityBaseUri;
     private final String entityTypeUri;
+    private final String filterConditions;
 
-    public EntityGraphGateway(String endpointUrl, String baseUri, String entityType) {
+    public EntityGraphGateway(String endpointUrl, String baseUri, String entityType, Set<String> summaryFields) {
         this.endpointUrl = endpointUrl;
         this.baseUri = baseUri;
         this.entityTypeUri = baseUri + entityType;
         this.entityBaseUri = entityTypeUri + "s/";
+        this.filterConditions = summaryFields.stream()
+                .map(fieldName -> String.format("?p = <%s%s>", baseUri, fieldName))
+                .collect(Collectors.joining(" || "));
     }
 
     public boolean create(String entityId, JsonObject jsonObject) {
@@ -134,7 +140,7 @@ public abstract class EntityGraphGateway {
         Map<String, Map<String, RDFNode>> resultMap = new HashMap<>();
         try (RDFConnection conn = RDFConnectionFactory.connect(endpointUrl)) {
             Txn.executeRead(conn, () -> {
-                String queryString = String.format("SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s a <%s> }", entityTypeUri);
+                String queryString = String.format("SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s a <%s> . FILTER ( %s ) }", entityTypeUri, filterConditions);
                 conn.querySelect(queryString, qs -> {
                     String s = getResourceLocalName(qs.get("s"));
                     Map<String, RDFNode> entityPropertyMap = resultMap.computeIfAbsent(s, x -> new HashMap<>());
