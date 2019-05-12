@@ -35,7 +35,7 @@ public class ServerTest {
 
     @BeforeAll
     public static void startServer() throws Exception {
-        webServer = Server.start();
+        webServer = Server.start("localhost");
         while (!webServer.isRunning()) {
             Thread.sleep(1 * 1000);
         }
@@ -100,8 +100,7 @@ public class ServerTest {
         }
         loadEntities(entityTypePlural);
         List<JsonObject> jsonObjects = loadObjects(entityResourceFilePath);
-        String queryEndpoint = getApiEndpoint() + entityEndpointPath;
-        assertEntityListing(queryEndpoint, entityIdKey, jsonObjects);
+        assertEntityListing(apiRoot, entityIdKey, jsonObjects);
     }
 
     @Test

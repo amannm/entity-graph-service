@@ -19,15 +19,15 @@ import java.util.logging.Logger;
 public class Server {
 
     public static void main(final String[] args) throws IOException {
-        start();
+        start("fuseki-docker");
     }
 
-    static WebServer start() throws IOException {
+    static WebServer start(String databaseHostname) throws IOException {
         Logger logger = setupLogger();
         InetAddress localHost = InetAddress.getLocalHost();
         WebServer server = WebServer.create(getConfig(localHost), getRouting());
         server.context()
-                .register("graphEndpointUrl", getGraphEndpointUrl());
+                .register("graphEndpointUrl", getGraphEndpointUrl(databaseHostname));
         server.start().thenAccept(ws ->
                 logger.log(Level.INFO, "server started @ http://" + localHost.getHostAddress() + ":" + ws.port()));
         server.whenShutdown().thenRun(() ->
@@ -41,8 +41,8 @@ public class Server {
         return Logger.getGlobal();
     }
 
-    private static String getGraphEndpointUrl() {
-        return "http://fuseki-docker:3030/dataset";
+    private static String getGraphEndpointUrl(String databaseHostname) {
+        return "http://" + databaseHostname + ":3030/dataset";
     }
 
     private static ServerConfiguration getConfig(InetAddress address) {
