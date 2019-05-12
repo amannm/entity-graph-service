@@ -3,6 +3,7 @@ package systems.cauldron.service.entitygraph.resource;
 import systems.cauldron.service.entitygraph.gateway.EntityGraphGateway;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.ws.rs.core.Response;
@@ -31,12 +32,15 @@ public abstract class EntityResource {
         }
         String id = jsonObject.getString(entityIdKey);
         try {
-            gateway.create(id, jsonObject);
+            if (gateway.create(id, jsonObject)) {
+                return Response.created(URI.create(BASE_URI + entityRootPath + id)).build();
+            } else {
+                return Response.status(Response.Status.CONFLICT).build();
+            }
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "exception while creating entity", ex);
             return Response.serverError().build();
         }
-        return Response.created(URI.create(BASE_URI + entityRootPath + id)).build();
     }
 
     public Response get(String id) {
@@ -50,6 +54,21 @@ public abstract class EntityResource {
         if (result.isPresent()) {
             JsonObject jsonObject = result.get();
             return Response.ok(jsonObject.toString()).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    public Response get() {
+        JsonArray result;
+        try {
+            result = gateway.read();
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "exception while retrieving entity", ex);
+            return Response.serverError().build();
+        }
+        if (!result.isEmpty()) {
+            return Response.ok(result.toString()).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).build();
         }

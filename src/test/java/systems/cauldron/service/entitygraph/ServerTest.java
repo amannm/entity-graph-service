@@ -14,13 +14,17 @@ import org.junit.jupiter.api.Test;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonValue;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -74,6 +78,10 @@ public class ServerTest {
         for (JsonObject object : objects) {
             assertCrudability(apiRoot, object.getString("userId"), object);
         }
+        loadEntities("users");
+        List<JsonObject> jsonObjects = loadObjects("/users.json");
+        String queryEndpoint = getApiEndpoint() + "/users";
+        assertEntityListing(queryEndpoint, "userId", jsonObjects);
     }
 
     @Test
@@ -83,6 +91,10 @@ public class ServerTest {
         for (JsonObject object : objects) {
             assertCrudability(apiRoot, object.getString("placeId"), object);
         }
+        loadEntities("places");
+        List<JsonObject> jsonObjects = loadObjects("/places.json");
+        String queryEndpoint = getApiEndpoint() + "/places";
+        assertEntityListing(queryEndpoint, "placeId", jsonObjects);
     }
 
     @Test
@@ -92,6 +104,10 @@ public class ServerTest {
         for (JsonObject object : objects) {
             assertCrudability(apiRoot, object.getString("tripId"), object);
         }
+        loadEntities("trips");
+        List<JsonObject> jsonObjects = loadObjects("/trips.json");
+        String queryEndpoint = getApiEndpoint() + "/trips";
+        assertEntityListing(queryEndpoint, "tripId", jsonObjects);
     }
 
     @Test
@@ -101,7 +117,7 @@ public class ServerTest {
         String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
-        Assertions.assertFalse(jsonObject.isEmpty());
+        Assertions.assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
     }
 
     @Test
@@ -115,7 +131,7 @@ public class ServerTest {
                 "?user <http://cauldron.systems/graph/name> 'Tony Stark' }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
-        Assertions.assertFalse(jsonObject.isEmpty());
+        Assertions.assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());
     }
 
     private String getApiEndpoint() {
@@ -149,7 +165,7 @@ public class ServerTest {
         assertEntityNotExists(testLocation);
     }
 
-    public static String createEntity(String urlString, JsonObject object) throws IOException {
+    public static void createEntity(String urlString, JsonObject object) throws IOException {
         URL url = tryConstructUrl(urlString);
         byte[] body = object.toString().getBytes(StandardCharsets.UTF_8);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -160,8 +176,7 @@ public class ServerTest {
         try (DataOutputStream dataOutputStream = new DataOutputStream(connection.getOutputStream())) {
             dataOutputStream.write(body);
         }
-        Assertions.assertEquals(201, connection.getResponseCode());
-        return connection.getHeaderField("Location");
+        int responseCode = connection.getResponseCode();
     }
 
     public static JsonObject executeQuery(String urlString, String queryString) throws IOException {
@@ -204,6 +219,26 @@ public class ServerTest {
         Assertions.assertEquals(404, connection.getResponseCode());
     }
 
+    public static void assertEntityListing(String urlString, String idKey, List<JsonObject> expected) throws IOException {
+        URL url = tryConstructUrl(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setDoInput(true);
+        Assertions.assertEquals(200, connection.getResponseCode());
+        try (JsonReader reader = Json.createReader(connection.getInputStream())) {
+            Set<JsonObject> actual = reader.readArray().stream().map(JsonValue::asJsonObject).collect(Collectors.toSet());
+            HashSet<JsonObject> extraItems = new HashSet<>(actual);
+            extraItems.removeAll(expected);
+            Assertions.assertEquals(Collections.emptySet(), extraItems, "extra items in returned collection");
+            HashSet<JsonObject> missingItems = new HashSet<>(expected);
+            missingItems.removeAll(actual);
+            Assertions.assertEquals(extractConflictingEntities(idKey, expected), missingItems, "conflicting items in returned collection");
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public static void deleteEntity(String urlString) throws IOException {
         URL url = tryConstructUrl(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -217,6 +252,20 @@ public class ServerTest {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Set<JsonObject> extractConflictingEntities(String idKey, List<JsonObject> objects) {
+        Set<JsonObject> results = new HashSet<>();
+        Set<String> ids = new HashSet<>();
+        for (JsonObject object : objects) {
+            String key = object.getString(idKey);
+            if (ids.contains(key)) {
+                results.add(object);
+            } else {
+                ids.add(key);
+            }
+        }
+        return results;
     }
 
 }

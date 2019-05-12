@@ -21,6 +21,7 @@ public class EntityModelBuilder {
         this.source = source;
         this.model = ModelFactory.createDefaultModel();
         this.subject = model.createResource(baseUri + entityType + "s/" + entityId);
+        model.add(subject, model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "type"), baseUri + entityType);
     }
 
     public EntityModelBuilder addStringProperty(String propertyName) {

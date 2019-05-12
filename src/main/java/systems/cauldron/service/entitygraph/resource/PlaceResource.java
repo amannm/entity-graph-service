@@ -43,6 +43,12 @@ public class PlaceResource extends EntityResource {
         return super.get(id);
     }
 
+    @GET
+    @Produces("application/json")
+    public Response get() {
+        return super.get();
+    }
+
     @DELETE
     @Path("{id}")
     public Response delete(@PathParam("id") String id) {
