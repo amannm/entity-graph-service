@@ -4,24 +4,24 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
+import systems.cauldron.service.entitygraph.resource.EntityResource;
 
 import javax.json.JsonObject;
 
-public class EntityModelBuilder {
+import static systems.cauldron.service.entitygraph.gateway.EntityGraphGateway.NAMESPACE_PREFIX;
 
-    private final String baseUri;
+public class EntityModelBuilder {
 
     private final JsonObject source;
 
     private final Model model;
     private final Resource subject;
 
-    public EntityModelBuilder(String baseUri, String entityType, String entityId, JsonObject source) {
-        this.baseUri = baseUri;
+    public EntityModelBuilder(String entityType, String entityId, JsonObject source) {
         this.source = source;
         this.model = ModelFactory.createDefaultModel();
-        String entityTypeUri = baseUri + entityType;
-        this.subject = model.createResource(entityTypeUri + "s/" + entityId);
+        String entityTypeUri = NAMESPACE_PREFIX + entityType;
+        this.subject = model.createResource(EntityResource.getEntityPath(entityType, entityId));
         model.add(subject,
                 model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "type"),
                 model.createResource(entityTypeUri));
@@ -30,7 +30,7 @@ public class EntityModelBuilder {
     public EntityModelBuilder addStringProperty(String propertyName) {
         if (source.containsKey(propertyName)) {
             model.add(subject,
-                    model.createProperty(baseUri, propertyName),
+                    model.createProperty(NAMESPACE_PREFIX, propertyName),
                     model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDstring)
             );
         }
@@ -40,7 +40,7 @@ public class EntityModelBuilder {
     public EntityModelBuilder addIntegerProperty(String propertyName) {
         if (source.containsKey(propertyName)) {
             model.add(subject,
-                    model.createProperty(baseUri, propertyName),
+                    model.createProperty(NAMESPACE_PREFIX, propertyName),
                     model.createTypedLiteral(source.getInt(propertyName), XSDDatatype.XSDinteger)
             );
         }
@@ -50,7 +50,7 @@ public class EntityModelBuilder {
     public EntityModelBuilder addTimestampProperty(String propertyName) {
         if (source.containsKey(propertyName)) {
             model.add(subject,
-                    model.createProperty(baseUri, propertyName),
+                    model.createProperty(NAMESPACE_PREFIX, propertyName),
                     model.createTypedLiteral(source.getString(propertyName), XSDDatatype.XSDdateTimeStamp)
             );
         }
@@ -60,8 +60,8 @@ public class EntityModelBuilder {
     public EntityModelBuilder addObjectProperty(String propertyName, String objectType) {
         if (source.containsKey(propertyName)) {
             model.add(subject,
-                    model.createProperty(baseUri, propertyName),
-                    model.createResource(baseUri + objectType + "s/" + source.getString(propertyName))
+                    model.createProperty(NAMESPACE_PREFIX, propertyName),
+                    model.createResource(EntityResource.getEntityPath(objectType, source.getString(propertyName)))
             );
         }
         return this;

@@ -25,9 +25,8 @@ public class UserResource extends EntityResource {
     @PostConstruct
     public void initialize() {
         String graphEndpointUrl = request.context().get("databaseUrl", String.class).orElseThrow();
-        gateway = new UserGraphGateway(BASE_URI, graphEndpointUrl);
-        entityIdKey = UserGraphGateway.ENTITY_TYPE + "Id";
-        entityRootPath = UserGraphGateway.ENTITY_TYPE + "s/";
+        setEntityGateway(new UserGraphGateway(graphEndpointUrl));
+        setEntityType(UserGraphGateway.ENTITY_TYPE);
     }
 
     @POST

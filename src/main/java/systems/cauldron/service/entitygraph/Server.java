@@ -52,7 +52,7 @@ public class Server {
     private static Routing getRouting() {
         return Routing.builder()
                 .register(JsonSupport.create())
-                .register("/api", JerseySupport.builder()
+                .register("/graph", JerseySupport.builder()
                         .register(UserResource.class)
                         .register(PlaceResource.class)
                         .register(TripResource.class)

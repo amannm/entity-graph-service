@@ -25,9 +25,8 @@ public class PlaceResource extends EntityResource {
     @PostConstruct
     public void initialize() {
         String graphEndpointUrl = request.context().get("databaseUrl", String.class).orElseThrow();
-        gateway = new PlaceGraphGateway(BASE_URI, graphEndpointUrl);
-        entityIdKey = PlaceGraphGateway.ENTITY_TYPE + "Id";
-        entityRootPath = PlaceGraphGateway.ENTITY_TYPE + "s/";
+        setEntityGateway(new PlaceGraphGateway(graphEndpointUrl));
+        setEntityType(PlaceGraphGateway.ENTITY_TYPE);
     }
 
     @POST

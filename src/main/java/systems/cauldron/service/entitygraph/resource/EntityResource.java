@@ -24,11 +24,21 @@ public abstract class EntityResource {
 
     private static Logger logger = Logger.getGlobal();
 
-    protected static final String BASE_URI = "http://cauldron.systems/graph/";
+    public static final String ROOT_PATH = "http://api.cauldron.systems/graph/";
 
-    protected EntityGraphGateway gateway;
-    protected String entityIdKey;
-    protected String entityRootPath;
+    private EntityGraphGateway gateway;
+    private String entityIdKey;
+    private String entityRootPath;
+
+    protected void setEntityType(String entityType) {
+        entityIdKey = entityType + "Id";
+        entityRootPath = entityType + "s/";
+    }
+
+    protected void setEntityGateway(EntityGraphGateway gateway) {
+        this.gateway = gateway;
+    }
+
 
     public Response post(String jsonObjectString) {
         JsonObject jsonObject;
@@ -40,7 +50,7 @@ public abstract class EntityResource {
         String id = jsonObject.getString(entityIdKey);
         try {
             if (gateway.create(id, jsonObject)) {
-                return created(URI.create(BASE_URI + entityRootPath + id)).build();
+                return created(URI.create(ROOT_PATH + entityRootPath + id)).build();
             } else {
                 return status(Status.CONFLICT).build();
             }
@@ -59,7 +69,7 @@ public abstract class EntityResource {
         }
         try {
             if (gateway.createOrUpdate(id, jsonObject)) {
-                return created(URI.create(BASE_URI + entityRootPath + id)).build();
+                return created(URI.create(ROOT_PATH + entityRootPath + id)).build();
             } else {
                 return status(Status.OK).build();
             }
@@ -129,4 +139,11 @@ public abstract class EntityResource {
         return noContent().build();
     }
 
+    public static String getEntityPath(String entityType, String entityId) {
+        return EntityResource.ROOT_PATH + entityType + "s/" + entityId;
+    }
+
+    public static String getEntityRootPath(String entityType) {
+        return EntityResource.ROOT_PATH + entityType + "s/";
+    }
 }

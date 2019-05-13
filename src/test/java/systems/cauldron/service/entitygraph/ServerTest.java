@@ -65,7 +65,7 @@ public class ServerTest {
     }
 
     private String getApiEndpoint() {
-        return config.getServerUrl() + "/api";
+        return config.getServerUrl() + "/graph";
     }
 
     @AfterAll
@@ -147,10 +147,10 @@ public class ServerTest {
         loadEntities("users", "places", "trips");
         String queryEndpoint = getApiEndpoint() + "/query";
         String queryString = "SELECT DISTINCT ?city WHERE { " +
-                "?place <http://cauldron.systems/graph/city> ?city . " +
-                "?trip <http://cauldron.systems/graph/destination> ?place . " +
-                "?trip <http://cauldron.systems/graph/userId> ?user . " +
-                "?user <http://cauldron.systems/graph/name> 'Tony Stark' }";
+                "?place <http://cauldron.systems/graph#city> ?city . " +
+                "?trip <http://cauldron.systems/graph#destination> ?place . " +
+                "?trip <http://cauldron.systems/graph#userId> ?user . " +
+                "?user <http://cauldron.systems/graph#name> 'Tony Stark' }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
         assertFalse(jsonObject.getJsonObject("results").getJsonArray("bindings").isEmpty());

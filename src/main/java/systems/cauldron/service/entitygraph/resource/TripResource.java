@@ -25,9 +25,8 @@ public class TripResource extends EntityResource {
     @PostConstruct
     public void initialize() {
         String graphEndpointUrl = request.context().get("databaseUrl", String.class).orElseThrow();
-        gateway = new TripGraphGateway(BASE_URI, graphEndpointUrl);
-        entityIdKey = TripGraphGateway.ENTITY_TYPE + "Id";
-        entityRootPath = TripGraphGateway.ENTITY_TYPE + "s/";
+        setEntityGateway(new TripGraphGateway(graphEndpointUrl));
+        setEntityType(TripGraphGateway.ENTITY_TYPE);
     }
 
     @POST

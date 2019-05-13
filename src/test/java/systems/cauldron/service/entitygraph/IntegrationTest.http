@@ -1,4 +1,4 @@
-POST http://localhost:8080/api/users
+POST http://localhost:8080/graph/users
 Content-Type: application/json
 
 {
@@ -11,7 +11,7 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:8080/api/users/tonystark
+PUT http://localhost:8080/graph/users/tonystark
 Content-Type: application/json
 
 {
@@ -23,7 +23,7 @@ Content-Type: application/json
 
 ###
 
-PUT http://localhost:8080/api/users/tonystark
+PUT http://localhost:8080/graph/users/tonystark
 Content-Type: application/json
 
 {
@@ -35,7 +35,7 @@ Content-Type: application/json
 
 ###
 
-PATCH http://localhost:8080/api/users/tonystark
+PATCH http://localhost:8080/graph/users/tonystark
 Content-Type: application/json
 
 {
@@ -45,16 +45,16 @@ Content-Type: application/json
 
 ###
 
-DELETE http://localhost:8080/api/users/tonystark
+DELETE http://localhost:8080/graph/users/tonystark
 
 ###
 
-GET http://localhost:8080/api/users/tonystark
+GET http://localhost:8080/graph/users/tonystark
 Accept: application/json
 
 ###
 
-PUT http://localhost:8080/api/users/thorodinson
+PUT http://localhost:8080/graph/users/thorodinson
 Content-Type: application/json
 
 {
@@ -67,16 +67,16 @@ Content-Type: application/json
 
 ###
 
-DELETE http://localhost:8080/api/users/thorodinson
+DELETE http://localhost:8080/graph/users/thorodinson
 
 ###
 
-GET http://localhost:8080/api/users/thorodinson
+GET http://localhost:8080/graph/users/thorodinson
 Accept: application/json
 
 ###
 
-GET http://localhost:8080/api/users
+GET http://localhost:8080/graph/users
 Accept: application/json
 
 ###
