@@ -1,3 +1,85 @@
+PUT http://localhost:8080/graph/users/tonystark
+Content-Type: application/json
+
+{
+  "name": "Tony Stark",
+  "email": "tony@avengers.org",
+  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
+  "company": "Avengers Inc."
+}
+
+###
+
+PUT http://localhost:8080/graph/users/thorodinson
+Content-Type: application/json
+
+{
+  "userId": "thorodinson",
+  "name": "Thor Odinson",
+  "email": "thor@avengers.org",
+  "bio": "Thor is a fictional superhero appearing in American comic books published by Marvel Comics. The character, which is based on the Norse deity of the same name, is the Asgardian god of thunder who possesses the enchanted hammer, Mjolnir, which grants him the ability to fly and manipulate weather amongst his other superhuman attributes.",
+  "company": "Avengers Inc."
+}
+
+###
+
+GET http://localhost:8080/graph/users
+Accept: application/json
+
+<> 2019-05-13T113617.200.json
+
+###
+
+GET http://localhost:8080/graph/users
+Accept: application/json
+
+<> 2019-05-13T113521.200.json
+
+###
+
+GET http://localhost:8080/graph/users
+Accept: application/json
+
+<> 2019-05-13T111947.200.json
+
+###
+
+PUT http://localhost:8080/graph/users/thorodinson
+Content-Type: application/json
+
+{
+  "userId": "thorodinson",
+  "name": "Thor Odinson",
+  "email": "thor@avengers.org",
+  "bio": "Thor is a fictional superhero appearing in American comic books published by Marvel Comics. The character, which is based on the Norse deity of the same name, is the Asgardian god of thunder who possesses the enchanted hammer, Mjolnir, which grants him the ability to fly and manipulate weather amongst his other superhuman attributes.",
+  "company": "Avengers Inc."
+}
+
+###
+
+GET http://localhost:8080/graph/users/tonystark
+Accept: application/json
+
+<> 2019-05-13T111931.200.json
+
+###
+
+PUT http://localhost:8080/graph/users/tonystark
+Content-Type: application/json
+
+{
+  "name": "Tony Stark",
+  "email": "tony@avengers.org",
+  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
+  "company": "Avengers Inc."
+}
+
+###
+
+DELETE http://api.cauldron.systems/api/users/tonystark
+
+###
+
 GET http://localhost:8080/graph/users
 Accept: application/json
 
@@ -373,75 +455,6 @@ Content-Type: application/json
 
 {
   "userId": "tonystark",
-  "name": "Tony Stark",
-  "email": "tony@avengers.org",
-  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
-  "company": "Avengers Inc."
-}
-
-###
-
-PUT http://localhost:8080/api/users/tonystark
-Content-Type: application/json
-
-{
-  "name": "Tony Stark",
-  "email": "tony@avengers.org",
-  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
-  "company": "Avengers Inc."
-}
-
-###
-
-DELETE http://localhost:8080/api/users/tonystark
-
-###
-
-GET http://localhost:8080/api/users/tonystark
-Accept: application/json
-
-<> 2019-05-12T021419.200.json
-
-###
-
-POST http://localhost:8080/api/users
-Content-Type: application/json
-
-{
-  "userId": "tonystark",
-  "name": "Tony Stark",
-  "email": "tony@avengers.org",
-  "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",
-  "company": "Avengers Inc."
-}
-
-###
-
-GET http://localhost:8080/api/users/tonystark
-Accept: application/json
-
-###
-
-GET http://localhost:8080/api/users/tonystark
-Accept: application/json
-
-###
-
-DELETE http://localhost:8080/api/users/tonystark
-
-###
-
-GET http://localhost:8080/api/users/tonystark
-Accept: application/json
-
-<> 2019-05-12T020758.200.json
-
-###
-
-PUT http://localhost:8080/api/users/tonystark
-Content-Type: application/json
-
-{
   "name": "Tony Stark",
   "email": "tony@avengers.org",
   "bio": "Iron Man is a fictional superhero appearing in American comic books published by Marvel Comics. The character was co-created by writer and editor Stan Lee, developed by scripter Larry Lieber, and designed by artists Don Heck and Jack Kirby. The character made his first appearance in Tales of Suspense #39 (cover dated March 1963), and received his own title in Iron Man #1 (May 1968).",

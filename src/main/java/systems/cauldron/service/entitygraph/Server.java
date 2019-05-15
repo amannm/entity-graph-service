@@ -5,6 +5,7 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerConfiguration;
 import io.helidon.webserver.WebServer;
 import io.helidon.webserver.jersey.JerseySupport;
+import systems.cauldron.service.entitygraph.resource.CorsFilter;
 import systems.cauldron.service.entitygraph.resource.PlaceResource;
 import systems.cauldron.service.entitygraph.resource.QueryResource;
 import systems.cauldron.service.entitygraph.resource.TripResource;
@@ -53,6 +54,7 @@ public class Server {
         return Routing.builder()
                 .register(JsonSupport.create())
                 .register("/graph", JerseySupport.builder()
+                        .register(CorsFilter.class)
                         .register(UserResource.class)
                         .register(PlaceResource.class)
                         .register(TripResource.class)

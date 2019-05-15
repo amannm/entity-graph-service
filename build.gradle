@@ -22,8 +22,8 @@ dependencies {
     compile group: 'io.helidon.webserver', name: 'helidon-webserver', version: '1+'
     compile group: 'io.helidon.config', name: 'helidon-config-yaml', version: '1+'
     compile group: 'io.helidon.media.jsonp', name: 'helidon-media-jsonp-server', version: '1+'
-    compile group: 'javax.activation', name: 'activation', version: '1+'
     compile group: 'io.helidon.webserver', name: 'helidon-webserver-jersey', version: '1+'
+    compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.2'
 
     //RDF framework and SPARQL endpoint connector
     compile('org.apache.jena:jena-core:3+') {
