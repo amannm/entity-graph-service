@@ -61,6 +61,20 @@ spec:
   selector:
     app: entity-graph-service
   ports:
-    - protocol: TCP
-      port: 80
+    - name: http
+      protocol: TCP
+      port: 8080
       targetPort: 8080
+    - name: health
+      protocol: TCP
+      port: 8081
+      targetPort: 8081
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: entity-graph-service
+spec:
+  backend:
+    serviceName: entity-graph-service
+    servicePort: 8080

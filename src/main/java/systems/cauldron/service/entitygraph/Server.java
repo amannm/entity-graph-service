@@ -77,6 +77,7 @@ public class Server {
     private static Routing getRouting() {
         return Routing.builder()
                 .register(JsonSupport.create())
+                .any("/", (req, res) -> res.status(200).send())
                 .register("/graph", JerseySupport.builder()
                         .register(CorsFilter.class)
                         .register(UserResource.class)
