@@ -52,6 +52,7 @@ public class ServerTest {
         config.setServerPort(getRandomAvailablePort());
         config.setDatabaseAddress(InetAddress.getLocalHost().getHostAddress());
         config.setDatabasePort(getRandomAvailablePort());
+        config.setHealthPort(getRandomAvailablePort());
         webServer = Server.start(config);
         while (!webServer.isRunning()) {
             Thread.sleep(1000);
@@ -62,10 +63,6 @@ public class ServerTest {
         try (ServerSocket socket = new ServerSocket(0)) {
             return socket.getLocalPort();
         }
-    }
-
-    private String getApiEndpoint() {
-        return config.getServerUrl() + "/graph";
     }
 
     @AfterAll
@@ -101,6 +98,12 @@ public class ServerTest {
     }
 
     @Test
+    public void testHealth() throws Exception {
+        assertHealthyOverall(config.getLivenessUrl());
+        assertHealthyOverall(config.getReadinessUrl());
+    }
+
+    @Test
     public void testUserEntity() throws Exception {
         testEntity("user", "name", Collections.singleton("name"));
     }
@@ -120,7 +123,7 @@ public class ServerTest {
         String entityTypePlural = entityType + "s";
         String entityEndpointPath = "/" + entityTypePlural;
         String entityResourceFilePath = entityEndpointPath + ".json";
-        String apiRoot = getApiEndpoint() + entityEndpointPath;
+        String apiRoot = config.getApiUrl() + entityEndpointPath;
         List<JsonObject> objects = loadObjects(entityResourceFilePath);
         for (JsonObject object : objects) {
             assertPostability(apiRoot, entityIdKey, object);
@@ -135,7 +138,7 @@ public class ServerTest {
     @Test
     public void testListAllQuery() throws Exception {
         loadEntities("users", "places", "trips");
-        String queryEndpoint = getApiEndpoint() + "/query";
+        String queryEndpoint = config.getApiUrl() + "/query";
         String queryString = "SELECT ?s ?p ?o WHERE { ?s ?p ?o }";
         JsonObject jsonObject = executeQuery(queryEndpoint, queryString);
         System.out.println(jsonObject.toString());
@@ -145,7 +148,7 @@ public class ServerTest {
     @Test
     public void testConnectivityQuery() throws Exception {
         loadEntities("users", "places", "trips");
-        String queryEndpoint = getApiEndpoint() + "/query";
+        String queryEndpoint = config.getApiUrl() + "/query";
         String queryString = "SELECT DISTINCT ?city WHERE { " +
                 "?place <http://cauldron.systems/graph#city> ?city . " +
                 "?trip <http://cauldron.systems/graph#destination> ?place . " +
@@ -159,7 +162,7 @@ public class ServerTest {
 
     private void loadEntities(String... resourceNames) {
         for (String resourceName : resourceNames) {
-            String entityRoot = getApiEndpoint() + "/" + resourceName;
+            String entityRoot = config.getApiUrl() + "/" + resourceName;
             loadObjects("/" + resourceName + ".json").forEach(e -> {
                 try {
                     createEntity(entityRoot, e);
@@ -316,6 +319,23 @@ public class ServerTest {
             throw new RuntimeException(ex);
         }
     }
+
+    public static void assertHealthyOverall(String urlString) throws IOException {
+        URL url = tryConstructUrl(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setDoInput(true);
+        assertEquals(200, connection.getResponseCode());
+        try (JsonReader reader = Json.createReader(connection.getInputStream())) {
+            JsonObject actual = reader.readObject();
+            String outcome = actual.getString("outcome");
+            assertEquals("UP", outcome);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
     public static void assertEntityNotExists(String urlString) throws IOException {
         URL url = tryConstructUrl(urlString);
