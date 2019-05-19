@@ -5,10 +5,10 @@ metadata:
   labels:
     app: entity-graph-service
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: entity-graph-service
+  replicas: 2
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -20,18 +20,20 @@ spec:
         app: entity-graph-service
     spec:
       containers:
-        - image: docker.io/amannm/entity-graph-service
+        - name: entity-graph-service
+          image: docker.io/amannm/entity-graph-service
           imagePullPolicy: Always
-          name: entity-graph-service
-          ports:
-            - name: http
-              containerPort: 8080
-            - name: health
-              containerPort: 8081
           resources:
             requests:
               cpu: 100m
               memory: 256M
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+            - name: health
+              protocol: TCP
+              containerPort: 8081
           livenessProbe:
             httpGet:
               path: /live
@@ -60,9 +62,9 @@ kind: Service
 metadata:
   name: entity-graph-service
 spec:
-  type: NodePort
   selector:
     app: entity-graph-service
+  type: NodePort
   ports:
     - name: http
       protocol: TCP
