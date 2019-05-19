@@ -24,7 +24,10 @@ spec:
           imagePullPolicy: Always
           name: entity-graph-service
           ports:
-            - containerPort: 8080
+            - name: http
+              containerPort: 8080
+            - name: health
+              containerPort: 8081
           resources:
             requests:
               cpu: 100m
@@ -70,10 +73,21 @@ spec:
       port: 8081
       targetPort: 8081
 ---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata:
+  name: cauldron-api-certificate
+spec:
+  domains:
+    - api.cauldron.systems
+---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: entity-graph-service
+  name: entity-graph-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: cauldron-api
+    networking.gke.io/managed-certificates: cauldron-api-certificate
 spec:
   backend:
     serviceName: entity-graph-service
