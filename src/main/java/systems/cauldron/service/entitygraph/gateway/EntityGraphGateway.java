@@ -9,7 +9,7 @@ import org.apache.jena.sparql.util.FmtUtils;
 import org.apache.jena.system.Txn;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
-import systems.cauldron.service.entitygraph.resource.EntityResource;
+import systems.cauldron.service.entitygraph.resource.EntityResourceFactory;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -34,7 +34,7 @@ public abstract class EntityGraphGateway {
     public EntityGraphGateway(String endpointUrl, String entityType, Set<String> summaryFields) {
         this.endpointUrl = endpointUrl;
         this.entityTypeUri = NAMESPACE_PREFIX + entityType;
-        this.entityRootPath = EntityResource.getEntityRootPath(entityType);
+        this.entityRootPath = EntityResourceFactory.getEntityRootPath(entityType);
         this.filterConditions = summaryFields.stream()
                 .map(fieldName -> String.format("?p = <%s%s>", NAMESPACE_PREFIX, fieldName))
                 .collect(Collectors.joining(" || "));
@@ -172,6 +172,8 @@ public abstract class EntityGraphGateway {
     protected abstract Model buildModel(String id, JsonObject jsonObject);
 
     protected abstract JsonObject buildJson(String id, Map<String, RDFNode> resultMap);
+
+    public abstract String getEntityType();
 
     private String getResourceLocalName(RDFNode node) {
         return node.asResource().getURI().replace(entityRootPath, "");

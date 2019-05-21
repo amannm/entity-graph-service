@@ -41,4 +41,9 @@ public class PlaceGraphGateway extends EntityGraphGateway {
         return builder.build();
     }
 
+    @Override
+    public String getEntityType() {
+        return ENTITY_TYPE;
+    }
+
 }

@@ -37,4 +37,9 @@ public class UserGraphGateway extends EntityGraphGateway {
         return builder.build();
     }
 
+    @Override
+    public String getEntityType() {
+        return ENTITY_TYPE;
+    }
+
 }

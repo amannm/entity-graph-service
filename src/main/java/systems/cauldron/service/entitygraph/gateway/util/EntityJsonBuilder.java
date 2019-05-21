@@ -1,7 +1,7 @@
 package systems.cauldron.service.entitygraph.gateway.util;
 
 import org.apache.jena.rdf.model.RDFNode;
-import systems.cauldron.service.entitygraph.resource.EntityResource;
+import systems.cauldron.service.entitygraph.resource.EntityResourceFactory;
 
 import javax.json.Json;
 import javax.json.JsonBuilderFactory;
@@ -39,7 +39,7 @@ public class EntityJsonBuilder {
 
     public EntityJsonBuilder addObjectProperty(String propertyName, String objectType) {
         if (resultMap.containsKey(propertyName)) {
-            objectBuilder.add(propertyName, resultMap.get(propertyName).asResource().getURI().replace(EntityResource.getEntityRootPath(objectType), ""));
+            objectBuilder.add(propertyName, resultMap.get(propertyName).asResource().getURI().replace(EntityResourceFactory.getEntityRootPath(objectType), ""));
         }
         return this;
     }

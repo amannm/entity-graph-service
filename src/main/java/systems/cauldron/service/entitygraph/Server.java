@@ -10,10 +10,8 @@ import io.helidon.webserver.WebServer;
 import io.helidon.webserver.jersey.JerseySupport;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import systems.cauldron.service.entitygraph.resource.CorsFilter;
-import systems.cauldron.service.entitygraph.resource.PlaceResource;
+import systems.cauldron.service.entitygraph.resource.EntityResourceFactory;
 import systems.cauldron.service.entitygraph.resource.QueryResource;
-import systems.cauldron.service.entitygraph.resource.TripResource;
-import systems.cauldron.service.entitygraph.resource.UserResource;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -35,7 +33,7 @@ public class Server {
 
     static WebServer start(ServerConfig config) throws IOException {
         Logger logger = setupLogger();
-        WebServer server = WebServer.builder(getRouting())
+        WebServer server = WebServer.builder(getRouting(config.getDatabaseUrl(), logger))
                 .config(getConfig(config))
                 .addNamedRouting("health", getHealthRouting())
                 .build();
@@ -74,18 +72,17 @@ public class Server {
                 .build();
     }
 
-    private static Routing getRouting() {
+    private static Routing getRouting(String graphEndpointUrl, Logger logger) {
+        JerseySupport.Builder graphApi = JerseySupport.builder()
+                .register(CorsFilter.class)
+                .register(QueryResource.class)
+                .registerResources(EntityResourceFactory.getResources(logger, graphEndpointUrl));
         return Routing.builder()
                 .register(JsonSupport.create())
                 .any("/", (req, res) -> res.status(200).send())
-                .register("/graph", JerseySupport.builder()
-                        .register(CorsFilter.class)
-                        .register(UserResource.class)
-                        .register(PlaceResource.class)
-                        .register(TripResource.class)
-                        .register(QueryResource.class)
-                )
+                .register("/graph", graphApi)
                 .build();
     }
+
 
 }

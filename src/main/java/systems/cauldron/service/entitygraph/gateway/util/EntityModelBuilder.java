@@ -4,7 +4,7 @@ import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
-import systems.cauldron.service.entitygraph.resource.EntityResource;
+import systems.cauldron.service.entitygraph.resource.EntityResourceFactory;
 
 import javax.json.JsonObject;
 
@@ -21,7 +21,7 @@ public class EntityModelBuilder {
         this.source = source;
         this.model = ModelFactory.createDefaultModel();
         String entityTypeUri = NAMESPACE_PREFIX + entityType;
-        this.subject = model.createResource(EntityResource.getEntityPath(entityType, entityId));
+        this.subject = model.createResource(EntityResourceFactory.getEntityPath(entityType, entityId));
         model.add(subject,
                 model.createProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "type"),
                 model.createResource(entityTypeUri));
@@ -61,7 +61,7 @@ public class EntityModelBuilder {
         if (source.containsKey(propertyName)) {
             model.add(subject,
                     model.createProperty(NAMESPACE_PREFIX, propertyName),
-                    model.createResource(EntityResource.getEntityPath(objectType, source.getString(propertyName)))
+                    model.createResource(EntityResourceFactory.getEntityPath(objectType, source.getString(propertyName)))
             );
         }
         return this;
